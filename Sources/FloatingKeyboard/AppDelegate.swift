@@ -5,6 +5,7 @@ import SwiftUI
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var keyboardPanel: KeyboardPanel!
     private var edgeTab: EdgeTabWindow!
+    private var statusItem: NSStatusItem!
     private var isKeyboardVisible = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -13,6 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupKeyboardPanel()
         setupEdgeTab()
+        setupMenuBar()
 
         // Register as login item (launch at startup)
         try? SMAppService.mainApp.register()
@@ -88,6 +90,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         isKeyboardVisible.toggle()
+    }
+
+    private func setupMenuBar() {
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        if let button = statusItem.button {
+            button.title = "⌨"
+        }
+
+        let menu = NSMenu()
+        menu.addItem(NSMenuItem(title: "Toggle Keyboard", action: #selector(menuToggle), keyEquivalent: "k"))
+        menu.addItem(NSMenuItem.separator())
+        menu.addItem(NSMenuItem(title: "Quit Floating Keyboard", action: #selector(menuQuit), keyEquivalent: "q"))
+        statusItem.menu = menu
+    }
+
+    @objc private func menuToggle() {
+        toggleKeyboard()
+    }
+
+    @objc private func menuQuit() {
+        NSApp.terminate(nil)
     }
 
     private func checkAccessibility() {
