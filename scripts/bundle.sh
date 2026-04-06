@@ -25,6 +25,11 @@ cp "${BUILD_DIR}/${APP_NAME}" "${MACOS}/${APP_NAME}"
 # Copy Info.plist
 cp "Sources/FloatingKeyboard/Info.plist" "${CONTENTS}/Info.plist"
 
+# Copy icon
+RESOURCES="${CONTENTS}/Resources"
+mkdir -p "${RESOURCES}"
+cp "Sources/FloatingKeyboard/AppIcon.icns" "${RESOURCES}/AppIcon.icns"
+
 echo "✅ App bundle created at: ${APP_BUNDLE}"
 echo ""
 echo "To run: open ${APP_BUNDLE}"
