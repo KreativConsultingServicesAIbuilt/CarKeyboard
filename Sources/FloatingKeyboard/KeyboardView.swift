@@ -7,50 +7,52 @@ struct KeyboardView: View {
     @State private var optionActive = false
     @State private var cmdActive = false
 
-    private let keyHeight: CGFloat = 48
     private let keySpacing: CGFloat = 4
-    private let standardKeyWidth: CGFloat = 44
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Drag handle
-            RoundedRectangle(cornerRadius: 2)
-                .fill(Color.white.opacity(0.2))
-                .frame(width: 40, height: 4)
-                .padding(.top, 8)
-                .padding(.bottom, 4)
+        GeometryReader { geo in
+            let rows = showExtended ? KeyLayout.extendedRows : KeyLayout.basicRows
+            let rowCount = CGFloat(rows.count)
+            let topPadding: CGFloat = 12
+            let bottomPadding: CGFloat = 12
+            let availableHeight = geo.size.height - topPadding - bottomPadding - (rowCount - 1) * keySpacing
+            let keyHeight = max(36, availableHeight / rowCount)
 
-            // Keyboard rows
             VStack(spacing: keySpacing) {
-                let rows = showExtended ? KeyLayout.extendedRows : KeyLayout.basicRows
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     HStack(spacing: keySpacing) {
+                        let totalWeight = row.reduce(CGFloat(0)) { $0 + $1.width }
+                        let totalSpacing = CGFloat(row.count - 1) * keySpacing
+                        let availableWidth = geo.size.width - 16  // 8px padding each side
+                        let unitWidth = (availableWidth - totalSpacing) / totalWeight
+
                         ForEach(row) { key in
-                            keyButton(for: key)
+                            keyButton(for: key, width: key.width * unitWidth, height: keyHeight)
                         }
                     }
                 }
             }
             .padding(.horizontal, 8)
-            .padding(.bottom, 12)
+            .padding(.top, topPadding)
+            .padding(.bottom, bottomPadding)
+            .frame(width: geo.size.width, height: geo.size.height)
         }
         .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(nsColor: NSColor(white: 0.1, alpha: 0.95)))
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(nsColor: NSColor(white: 0.08, alpha: 0.95)))
         )
     }
 
     @ViewBuilder
-    private func keyButton(for key: KeyDef) -> some View {
+    private func keyButton(for key: KeyDef, width: CGFloat, height: CGFloat) -> some View {
         let isActive = modifierIsActive(key)
         let displayLabel = resolveLabel(for: key)
-        let width = key.width * standardKeyWidth + (key.width - 1) * keySpacing
 
         Button(action: { handleKeyPress(key) }) {
             Text(displayLabel)
-                .font(.system(size: key.width > 2 ? 16 : 18, weight: .medium, design: .rounded))
+                .font(.system(size: min(height * 0.4, 20), weight: .medium, design: .rounded))
                 .foregroundColor(isActive ? .black : .white)
-                .frame(width: width, height: keyHeight)
+                .frame(width: width, height: height)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
                         .fill(keyBackground(for: key, isActive: isActive))
@@ -91,7 +93,6 @@ struct KeyboardView: View {
     private func handleKeyPress(_ key: KeyDef) {
         let sim = KeySimulator.shared
 
-        // Toggle between basic/extended
         if key.keyName == "toggle_extended" {
             showExtended = true
             return
@@ -101,17 +102,14 @@ struct KeyboardView: View {
             return
         }
 
-        // Modifier toggle
         if key.isModifier, let flag = key.modifierFlag {
             let nowActive = sim.toggleModifier(flag)
             updateModifierState(flag: flag, active: nowActive)
             return
         }
 
-        // Regular key press
         sim.postKey(named: key.keyName)
 
-        // Reset modifier UI state after key press
         shiftActive = sim.isShiftActive
         ctrlActive = sim.isControlActive
         optionActive = sim.isOptionActive
