@@ -1,0 +1,56 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: Build
+        run: swift build -c release
+
+      - name: Create .app bundle
+        run: bash scripts/bundle.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FloatingKeyboard
+          path: .build/release/FloatingKeyboard.app
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app
+
+      - name: Build release
+        run: swift build -c release
+
+      - name: Create .app bundle
+        run: bash scripts/bundle.sh
+
+      - name: Create ZIP
+        run: |
+          cd .build/release
+          zip -r FloatingKeyboard.zip FloatingKeyboard.app
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: .build/release/FloatingKeyboard.zip
+          generate_release_notes: true
