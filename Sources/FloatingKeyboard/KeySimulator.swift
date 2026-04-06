@@ -50,7 +50,35 @@ final class KeySimulator {
         activeModifiers = []
     }
 
+    // Unicode characters for keys without virtual key codes (e.g. Swedish letters)
+    static let unicodeKeys: [String: (normal: String, shifted: String)] = [
+        "sv_aa": ("å", "Å"),
+        "sv_ae": ("ä", "Ä"),
+        "sv_oe": ("ö", "Ö"),
+    ]
+
+    func postUnicodeKey(_ char: String) {
+        let source = CGEventSource(stateID: .hidSystemState)
+        guard let event = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true) else { return }
+
+        let utf16 = Array(char.utf16)
+        event.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: utf16)
+        event.post(tap: .cghidEventTap)
+
+        if let upEvent = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: false) {
+            upEvent.post(tap: .cghidEventTap)
+        }
+
+        activeModifiers = []
+    }
+
     func postKey(named name: String) {
+        // Check for Unicode keys first (Swedish letters etc.)
+        if let unicode = KeySimulator.unicodeKeys[name.lowercased()] {
+            let char = isShiftActive ? unicode.shifted : unicode.normal
+            postUnicodeKey(char)
+            return
+        }
         guard let keyCode = KeySimulator.virtualKeyCodes[name.lowercased()] else { return }
         postKeyEvent(keyCode: keyCode)
     }

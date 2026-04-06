@@ -43,12 +43,14 @@ struct KeyLayout {
         [
             KeyDef("Q"), KeyDef("W"), KeyDef("E"), KeyDef("R"), KeyDef("T"),
             KeyDef("Y"), KeyDef("U"), KeyDef("I"), KeyDef("O"), KeyDef("P"),
+            KeyDef("Å", keyName: "sv_aa", shift: "Å"),
         ],
         // Home row
         [
             KeyDef("A"), KeyDef("S"), KeyDef("D"), KeyDef("F"), KeyDef("G"),
             KeyDef("H"), KeyDef("J"), KeyDef("K"), KeyDef("L"),
-            KeyDef(";", keyName: "semicolon", shift: ":"),
+            KeyDef("Ö", keyName: "sv_oe", shift: "Ö"),
+            KeyDef("Ä", keyName: "sv_ae", shift: "Ä"),
         ],
         // Bottom row
         [

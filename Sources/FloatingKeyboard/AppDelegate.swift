@@ -1,4 +1,5 @@
 import Cocoa
+import ServiceManagement
 import SwiftUI
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -6,7 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var edgeTab: EdgeTabWindow!
     private var isKeyboardVisible = false
 
-    private let keyboardWidth: CGFloat = 580
+    private let keyboardWidth: CGFloat = 630
     private let keyboardHeight: CGFloat = 320
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -15,6 +16,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         setupKeyboardPanel()
         setupEdgeTab()
+
+        // Register as login item (launch at startup)
+        try? SMAppService.mainApp.register()
 
         // Check accessibility permission
         checkAccessibility()
