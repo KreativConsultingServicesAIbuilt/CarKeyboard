@@ -49,7 +49,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let hostView = NSHostingView(rootView: KeyboardView())
         keyboardPanel.contentView = hostView
 
-        keyboardPanel.orderFront(nil)
+        // Start hidden — don't show until toggled
+        keyboardPanel.orderOut(nil)
     }
 
     private func setupEdgeTab() {
@@ -68,7 +69,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let x = screenFrame.minX
 
         if isKeyboardVisible {
-            // Slide down (hide)
+            // Slide down then hide completely
+            keyboardPanel.setFrame(
+                NSRect(x: x, y: screenFrame.minY, width: w, height: h),
+                display: false
+            )
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.25
                 context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
@@ -76,9 +81,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     NSRect(x: x, y: screenFrame.minY - h, width: w, height: h),
                     display: true
                 )
+            }, completionHandler: { [weak self] in
+                self?.keyboardPanel.orderOut(nil)
             })
         } else {
-            // Slide up (show) — just above the dock
+            // Position off-screen, show, then slide up
+            keyboardPanel.setFrame(
+                NSRect(x: x, y: screenFrame.minY - h, width: w, height: h),
+                display: false
+            )
+            keyboardPanel.orderFront(nil)
             NSAnimationContext.runAnimationGroup({ context in
                 context.duration = 0.25
                 context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
