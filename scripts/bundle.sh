@@ -1,8 +1,10 @@
 #!/bin/bash
 set -euo pipefail
 
-# Build the Swift package in release mode
-swift build -c release
+# Build if not already built
+if [ ! -f ".build/release/FloatingKeyboard" ]; then
+  swift build -c release
+fi
 
 # Paths
 BUILD_DIR=".build/release"
