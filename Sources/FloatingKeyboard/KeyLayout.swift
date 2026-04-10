@@ -63,7 +63,8 @@ struct KeyLayout {
         // Space row
         [
             KeyDef("⌨", keyName: "toggle_extended", width: 1.5),
-            KeyDef("Space", keyName: "space", width: 5.0),
+            KeyDef("🖱", keyName: "toggle_cursor", width: 1.0),
+            KeyDef("Space", keyName: "space", width: 4.0),
             KeyDef("⏎", keyName: "return", width: 1.5),
         ],
     ]

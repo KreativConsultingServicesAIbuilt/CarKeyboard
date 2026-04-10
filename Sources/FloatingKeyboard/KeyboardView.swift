@@ -6,6 +6,7 @@ struct KeyboardView: View {
     @State private var ctrlActive = false
     @State private var optionActive = false
     @State private var cmdActive = false
+    @State private var cursorVisible = false
 
     private let keySpacing: CGFloat = 4
 
@@ -71,6 +72,9 @@ struct KeyboardView: View {
         if key.keyName == "toggle_extended" || key.keyName == "toggle_basic" {
             return Color.blue.opacity(0.4)
         }
+        if key.keyName == "toggle_cursor" {
+            return cursorVisible ? Color.green.opacity(0.5) : Color.white.opacity(0.1)
+        }
         return Color.white.opacity(0.1)
     }
 
@@ -99,6 +103,10 @@ struct KeyboardView: View {
         }
         if key.keyName == "toggle_basic" {
             showExtended = false
+            return
+        }
+        if key.keyName == "toggle_cursor" {
+            cursorVisible = CursorManager.shared.toggle()
             return
         }
 
