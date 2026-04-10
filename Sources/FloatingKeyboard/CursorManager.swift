@@ -3,11 +3,8 @@ import Cocoa
 final class CursorManager {
     static let shared = CursorManager()
 
-    private(set) var isCursorVisible = false  // default: hidden
-
-    init() {
-        hideCursor()
-    }
+    // Default: cursor visible (cursor hiding is opt-in via the button)
+    private(set) var isCursorVisible = true
 
     func toggle() -> Bool {
         if isCursorVisible {
@@ -19,17 +16,18 @@ final class CursorManager {
     }
 
     private func hideCursor() {
-        // Move cursor to bottom-right corner and disconnect mouse from cursor position
+        // Move cursor to bottom-right corner and keep it there
         guard let screen = NSScreen.main else { return }
         let corner = CGPoint(x: screen.frame.maxX - 1, y: screen.frame.maxY - 1)
         CGWarpMouseCursorPosition(corner)
-        CGAssociateMouseAndMouseCursorPosition(boolean_t(0))
         isCursorVisible = false
     }
 
     private func showCursor() {
-        // Re-associate mouse with cursor position
-        CGAssociateMouseAndMouseCursorPosition(boolean_t(1))
+        // Move cursor to center of screen
+        guard let screen = NSScreen.main else { return }
+        let center = CGPoint(x: screen.frame.midX, y: screen.frame.midY)
+        CGWarpMouseCursorPosition(center)
         isCursorVisible = true
     }
 }

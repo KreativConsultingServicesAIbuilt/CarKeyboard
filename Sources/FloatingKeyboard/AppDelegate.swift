@@ -12,9 +12,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Hide dock icon — app lives in the floating panels only
         NSApp.setActivationPolicy(.accessory)
 
-        // Hide cursor by default (touch mode)
-        _ = CursorManager.shared
-
         setupKeyboardPanel()
         setupEdgeTab()
         setupMenuBar()

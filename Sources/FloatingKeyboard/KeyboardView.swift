@@ -6,7 +6,7 @@ struct KeyboardView: View {
     @State private var ctrlActive = false
     @State private var optionActive = false
     @State private var cmdActive = false
-    @State private var cursorVisible = false
+    @State private var cursorVisible = true
 
     private let keySpacing: CGFloat = 4
 
