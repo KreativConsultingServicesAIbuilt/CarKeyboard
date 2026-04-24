@@ -23,27 +23,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         checkAccessibility()
     }
 
-    private var keyboardWidth: CGFloat {
-        guard let screen = NSScreen.main else { return 800 }
-        return screen.visibleFrame.width
-    }
-
-    private var keyboardHeight: CGFloat {
-        guard let screen = NSScreen.main else { return 300 }
-        return min(screen.visibleFrame.height / 3, 350)
+    // Full-screen dimensions — covers entire display including menu bar
+    private var keyboardFrame: NSRect {
+        guard let screen = NSScreen.main else {
+            return NSRect(x: 0, y: 0, width: 1280, height: 800)
+        }
+        return screen.frame
     }
 
     private func setupKeyboardPanel() {
-        guard let screen = NSScreen.main else { return }
-        let screenFrame = screen.visibleFrame
-        let w = keyboardWidth
-        let h = keyboardHeight
-
-        // Position at bottom, full width, initially off-screen (below)
-        let x = screenFrame.minX
-        let y = screenFrame.minY - h
-
-        let rect = NSRect(x: x, y: y, width: w, height: h)
+        let sf = keyboardFrame
+        // Start off-screen below the display
+        let rect = NSRect(x: sf.minX, y: sf.minY - sf.height,
+                          width: sf.width, height: sf.height)
         keyboardPanel = KeyboardPanel(contentRect: rect)
 
         let hostView = NSHostingView(rootView: KeyboardView())
@@ -62,42 +54,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func toggleKeyboard() {
-        guard let screen = NSScreen.main else { return }
-        let screenFrame = screen.visibleFrame
-        let w = keyboardWidth
-        let h = keyboardHeight
-        let x = screenFrame.minX
+        let sf = keyboardFrame
+        let shown  = NSRect(x: sf.minX, y: sf.minY, width: sf.width, height: sf.height)
+        let hidden = NSRect(x: sf.minX, y: sf.minY - sf.height, width: sf.width, height: sf.height)
 
         if isKeyboardVisible {
             // Slide down then hide completely
-            keyboardPanel.setFrame(
-                NSRect(x: x, y: screenFrame.minY, width: w, height: h),
-                display: false
-            )
-            NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.25
-                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                keyboardPanel.animator().setFrame(
-                    NSRect(x: x, y: screenFrame.minY - h, width: w, height: h),
-                    display: true
-                )
+            keyboardPanel.setFrame(shown, display: false)
+            NSAnimationContext.runAnimationGroup({ ctx in
+                ctx.duration = 0.25
+                ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                keyboardPanel.animator().setFrame(hidden, display: true)
             }, completionHandler: { [weak self] in
                 self?.keyboardPanel.orderOut(nil)
             })
         } else {
             // Position off-screen, show, then slide up
-            keyboardPanel.setFrame(
-                NSRect(x: x, y: screenFrame.minY - h, width: w, height: h),
-                display: false
-            )
+            keyboardPanel.setFrame(hidden, display: false)
             keyboardPanel.orderFront(nil)
-            NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.25
-                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                keyboardPanel.animator().setFrame(
-                    NSRect(x: x, y: screenFrame.minY, width: w, height: h),
-                    display: true
-                )
+            NSAnimationContext.runAnimationGroup({ ctx in
+                ctx.duration = 0.25
+                ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                keyboardPanel.animator().setFrame(shown, display: true)
             })
         }
 

@@ -11,8 +11,9 @@ final class KeyboardPanel: NSPanel {
             defer: false
         )
 
-        // Float above all windows
-        level = .floating
+        // Float above ALL windows — above menu bar, status bar, pop-up menus
+        // NSWindow.Level.popUpMenu = 101; well above .floating (3) and .mainMenu (24)
+        level = .popUpMenu
         isFloatingPanel = true
 
         // Don't steal focus
