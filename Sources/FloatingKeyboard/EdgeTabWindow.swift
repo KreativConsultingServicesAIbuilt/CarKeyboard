@@ -30,7 +30,8 @@ final class EdgeTabWindow: NSPanel {
             defer: false
         )
 
-        level = .floating
+        // Must be above the keyboard panel (.popUpMenu = 101) so it's always tappable
+        level = NSWindow.Level(rawValue: NSWindow.Level.popUpMenu.rawValue + 1)
         isFloatingPanel = true
         becomesKeyOnlyIfNeeded = true
         isOpaque = false
