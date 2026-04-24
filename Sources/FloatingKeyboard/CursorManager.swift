@@ -21,15 +21,17 @@ final class CursorManager {
         // Use .defaultTap (not .listenOnly) so our callback runs BEFORE
         // macOS processes the event and potentially shows the cursor.
         // Intercept all pointer events — touchscreen generates mouseMoved.
-        let mask: CGEventMask = (1 << CGEventType.mouseMoved.rawValue)
+        // Split into two halves so the type-checker doesn't time out
+        let moveMask: CGEventMask = (1 << CGEventType.mouseMoved.rawValue)
             | (1 << CGEventType.leftMouseDragged.rawValue)
             | (1 << CGEventType.rightMouseDragged.rawValue)
             | (1 << CGEventType.otherMouseDragged.rawValue)
-            | (1 << CGEventType.leftMouseDown.rawValue)
+        let clickMask: CGEventMask = (1 << CGEventType.leftMouseDown.rawValue)
             | (1 << CGEventType.leftMouseUp.rawValue)
             | (1 << CGEventType.rightMouseDown.rawValue)
             | (1 << CGEventType.rightMouseUp.rawValue)
             | (1 << CGEventType.scrollWheel.rawValue)
+        let mask: CGEventMask = moveMask | clickMask
 
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
