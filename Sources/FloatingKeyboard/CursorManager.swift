@@ -6,6 +6,7 @@ final class CursorManager {
     private(set) var isCursorVisible = true
     private var eventTap: CFMachPort?
     private var runLoopSource: CFRunLoopSource?
+    private var hideCount = 0
 
     func toggle() -> Bool {
         if isCursorVisible {
@@ -17,21 +18,28 @@ final class CursorManager {
     }
 
     private func hideCursor() {
-        // Install a CGEvent tap that intercepts cursor movements
-        // and suppresses the system cursor by hiding it on every move
+        // Use .defaultTap (not .listenOnly) so our callback runs BEFORE
+        // macOS processes the event and potentially shows the cursor.
+        // Intercept all pointer events — touchscreen generates mouseMoved.
         let mask: CGEventMask = (1 << CGEventType.mouseMoved.rawValue)
             | (1 << CGEventType.leftMouseDragged.rawValue)
             | (1 << CGEventType.rightMouseDragged.rawValue)
+            | (1 << CGEventType.otherMouseDragged.rawValue)
             | (1 << CGEventType.leftMouseDown.rawValue)
             | (1 << CGEventType.leftMouseUp.rawValue)
+            | (1 << CGEventType.rightMouseDown.rawValue)
+            | (1 << CGEventType.rightMouseUp.rawValue)
+            | (1 << CGEventType.scrollWheel.rawValue)
 
         guard let tap = CGEvent.tapCreate(
             tap: .cgSessionEventTap,
             place: .headInsertEventTap,
-            options: .listenOnly,
+            options: .defaultTap,          // active tap — fires before cursor shows
             eventsOfInterest: mask,
             callback: { _, _, event, _ in
+                // Belt-and-suspenders: both APIs
                 CGDisplayHideCursor(CGMainDisplayID())
+                NSCursor.hide()
                 return Unmanaged.passRetained(event)
             },
             userInfo: nil
@@ -43,8 +51,10 @@ final class CursorManager {
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
         CGEvent.tapEnable(tap: tap, enable: true)
 
-        // Initial hide
+        // Initial hide — call twice to push the hide-level counter above 0
         CGDisplayHideCursor(CGMainDisplayID())
+        NSCursor.hide()
+        hideCount = 2
         isCursorVisible = false
     }
 
@@ -59,8 +69,13 @@ final class CursorManager {
         eventTap = nil
         runLoopSource = nil
 
-        // Show cursor
-        CGDisplayShowCursor(CGMainDisplayID())
+        // Balance the hide calls (CGDisplayShowCursor is counter-based)
+        for _ in 0 ..< hideCount {
+            CGDisplayShowCursor(CGMainDisplayID())
+        }
+        // NSCursor uses its own nested hide counter
+        NSCursor.unhide()
+        hideCount = 0
         isCursorVisible = true
     }
 }
