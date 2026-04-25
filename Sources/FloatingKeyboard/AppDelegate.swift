@@ -2,6 +2,10 @@ import Cocoa
 import ServiceManagement
 import SwiftUI
 
+extension Notification.Name {
+    static let hideKeyboard = Notification.Name("FloatingKeyboard.hide")
+}
+
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var keyboardPanel: KeyboardPanel!
     private var edgeTab: EdgeTabWindow!
@@ -18,6 +22,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Register as login item (launch at startup)
         try? SMAppService.mainApp.register()
+
+        // "Göm" button inside KeyboardView posts this to hide the keyboard
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(hideKeyboardFromNotification),
+            name: .hideKeyboard,
+            object: nil
+        )
 
         // Check accessibility permission
         checkAccessibility()
@@ -68,6 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }, completionHandler: { [weak self] in
                 self?.keyboardPanel.orderOut(nil)
             })
+            isKeyboardVisible = false
         } else {
             // Position off-screen, show, then slide up
             keyboardPanel.setFrame(hidden, display: false)
@@ -77,9 +90,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                 keyboardPanel.animator().setFrame(shown, display: true)
             })
+            isKeyboardVisible = true
         }
+    }
 
-        isKeyboardVisible.toggle()
+    @objc private func hideKeyboardFromNotification() {
+        guard isKeyboardVisible else { return }
+        toggleKeyboard()
     }
 
     private func setupMenuBar() {

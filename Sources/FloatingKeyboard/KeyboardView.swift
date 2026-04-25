@@ -73,7 +73,7 @@ struct KeyboardView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 18)
 
-            // Clear button
+            // Clear text button
             if !typedText.isEmpty {
                 Button(action: { typedText = "" }) {
                     Image(systemName: "xmark.circle.fill")
@@ -81,8 +81,29 @@ struct KeyboardView: View {
                         .foregroundColor(.white.opacity(0.4))
                 }
                 .buttonStyle(.plain)
-                .padding(.trailing, 14)
+                .padding(.trailing, 8)
             }
+
+            // ── Hide keyboard button ──────────────────────────────
+            Button(action: {
+                NotificationCenter.default.post(name: .hideKeyboard, object: nil)
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.down")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Göm")
+                        .font(.system(size: 14, weight: .medium))
+                }
+                .foregroundColor(.white.opacity(0.75))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.white.opacity(0.12))
+                )
+            }
+            .buttonStyle(.plain)
+            .padding(.trailing, 12)
         }
         .frame(height: previewHeight)
         .frame(maxWidth: .infinity)
